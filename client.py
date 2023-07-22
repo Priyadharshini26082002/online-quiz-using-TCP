@@ -1,0 +1,105 @@
+import socket
+import sys
+import select
+import os
+from tkinter import *
+from tkinter import messagebox
+
+sys.path.append(os.path.normpath("../ui/"))
+from question import *
+
+HEADER = 64
+PORT = 9001
+SERVER = "127.0.0.1"
+ADDR = (SERVER,PORT)
+FORMAT = 'utf-8'
+DISCONNECT_MSG = "Game Over"
+
+def closeConn(client):
+    root = Tk()
+    t = Text(root)
+    print("**********************************LEADERBOARD******************************")
+    print("---------------------------------------------------------------------------")
+    t.insert(END, ("**********************************LEADERBOARD******************************") + '\n')
+    t.insert(END, ("---------------------------------------------------------------------------") + '\n')
+    number_players = client.recv(4096).decode(FORMAT)
+    number_players = int(number_players)
+    print("%-10s %-15s %-10s %-10s %-10s" %("Player No","Name","Rank","Points","Total Time"))
+    t.insert(END, ("%-10s %-15s %-10s %-10s %-10s" %("Player No","Name","Rank","Points","Total Time")) + '\n')
+    for i in range(number_players):
+        rank_msg = client.recv(4096).decode(FORMAT).split("-")
+        print("%-10s %-15s %-10s %-10s %-10s" %(rank_msg[0],rank_msg[1],rank_msg[2],rank_msg[3],rank_msg[4]))
+        t.insert(END, ("%-10s %-15s %-10s %-10s %-10s" %(rank_msg[0],rank_msg[1],rank_msg[2],rank_msg[3],rank_msg[4])) + '\n')
+    final_msg = client.recv(4096).decode(FORMAT)
+    t.insert(END, ("---------------------------------------------------------------------------") + '\n')
+    t.insert(END, final_msg + '\n')
+    print("---------------------------------------------------------------------------")
+    print(final_msg)
+    print("---------------------------------------------------------------------------")
+    t.pack()
+    root.mainloop()
+    client.close()
+    sys.exit()
+
+def recvMessage(client):
+
+    q_msg = client.recv(4096).decode(FORMAT)
+    print(q_msg)
+
+    # If the received message is "Game Over" then exit
+    if(q_msg == DISCONNECT_MSG):
+        closeConn(client)
+
+    # Extract question and options from the message.
+    q_msg = q_msg.split("\n")
+    question = q_msg[0]
+    options = q_msg[1:]
+
+    # Create the Application
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow1()
+
+    # set the UI according to the new question receieved.
+    ui.setupUi_1(MainWindow,question,options,client,ui)
+    MainWindow.setWindowTitle("Quiz")
+    MainWindow.show()
+    sys.exit(app.exec_())
+
+def recvMessageF(client,ui,MainWindow):
+    # Receive the question from the
+    q_msg = client.recv(4096).decode(FORMAT)
+    print(q_msg)
+
+    # If the received message is "Game Over" then exit
+    if(q_msg == DISCONNECT_MSG):
+        MainWindow.close()
+        closeConn(client)
+
+    # Extract question and options from the message.
+    q_msg = q_msg.split("\n")
+    question = q_msg[0]
+    options = q_msg[1:]
+
+    # set the UI according to the new question receieved.
+    ui.setupUi_1(MainWindow,question,options,client,ui)
+    ui.updateQuestionIndex()
+
+if __name__ == "__main__":
+
+    # get username input
+    print("Enter the Username:")
+    username = input().strip()
+
+    clientS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    clientS.connect(ADDR)
+
+    # receive the welcome and rules message
+    wlcm_msg = clientS.recv(4096).decode(FORMAT)
+    print(wlcm_msg)
+
+    # send the username to the server for the leaderboard
+    clientS.send(username.encode(FORMAT))
+
+    # close this application
+    recvMessage(clientS)

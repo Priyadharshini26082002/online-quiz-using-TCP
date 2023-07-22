@@ -1,0 +1,38 @@
+Question Bank - Computer Networks Quiz Application
+
+BEGIN
+-------------------------------------------------------------------------------------------------------------------------
+Question:
+The endpoint of communication link between the client and server programs is___________.
+Options:
+Correct: socket
+pipe
+thread
+bus
+
+Question:
+The application program that provides services is
+Options:
+Client Program
+Correct: Server Program
+Peer Program
+Data Program
+
+Question:
+The stream communication , which is a connection-oriented protocol is_____________.
+Options:
+SMTP
+HTTP
+UDP
+Correct: TCP
+
+Question:
+_______ allows a program to do multiple things at the same time.
+Options:
+Class
+Pointers
+Correct: Threads
+Functions
+
+END
+-------------------------------------------------------------------------------------------------------------------------
